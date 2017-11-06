@@ -5,7 +5,7 @@ const cronJob = require('cron').CronJob;
 const OutputPlugin = require('./output-plugins/output-plugin');
 const MysqlOutputPlugin = require('./output-plugins/mysql');
 const StatsDOutputPlugin = require('./output-plugins/statsd');
-const debug = require('debug')('node-stats-aggregator');
+const debug = require('debug')('node-stats-aggregator:aggregator');
 
 /**
  * @class
@@ -17,17 +17,13 @@ class StatsAggregator {
         this.plugins = [];
         this.keyFields = keyFields;
         this.valueFields = valueFields;
-        _.each(this.valueFields, (type, vfield) => {
-            switch (type) {
-                case 'counter':
-                default:
-                    stat[vfield] = 0;
-                    let methodName = changeCase.camel('increment ' + vfield);
-                    debug('generating inc method named:', methodName);
-                    this[methodName] = () => {
-                        const stat = this.getOrCreateStat(keyValues);
-                        stat[vfield]++;
-                    }
+        _.each(this.valueFields, vfield => {
+            stat[vfield] = 0;
+            let methodName = changeCase.camel('increment ' + vfield);
+            debug('generating inc method named:', methodName);
+            this[methodName] = (keyValues) => {
+                const stat = this.getOrCreateStat(keyValues);
+                stat[vfield]++;
             }
         });
     }

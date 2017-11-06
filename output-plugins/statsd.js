@@ -4,6 +4,8 @@ const StatsdClient = require('statsd-client');
 
 const OutputPlugin = require('../output-plugin');
 
+const debug = require('node-stats-generator')('node-stats-aggregator:statsd');
+
 class StatsdPlugin extends OutputPlugin {
     constructor(options) {
         super(options);
@@ -11,11 +13,13 @@ class StatsdPlugin extends OutputPlugin {
     }
 
     save(data) {
-        let reportedObjects = this.reportedFields ?
-            _.map(data, obj => _.pick(obj, this.reportedFields)) : data;
-
-        _.each(reportedObjects, (value, key) =>
-            this.client.increment(this.statKeyNameGenerator(key), value));
+        const reportedFields = this.reportedFields || _.keys;
+        _.chain(data).values().each(datum => {
+            _.each(reportedFields, f => {
+                const statsdKey = this.statNameGenerator(f, datum);
+                this.client.increment(statsdKey, datum[f])
+            });
+        });
     }
 }
 
