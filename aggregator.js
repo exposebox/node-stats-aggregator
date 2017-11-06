@@ -45,11 +45,10 @@ class StatsAggregator {
     }
 }
 
-module.exports = function createStatsAggregator(name, keyFields, valueFields) {
+module.exports = function createStatsAggregator(name, keyFields, valueFields, options) {
     var agg = new StatsAggregator(name, keyFields, valueFields);
-    var sec = Math.floor(Math.random() * 60);
     new cronJob({
-        cronTime: sec + ' */3 * * * *',
+        cronTime: options.cronTime || Math.floor(Math.random() * 60) + ' */3 * * * *',
         onTick: function () {
             console.log('Running ', name, ' stat Job');
             agg.save();

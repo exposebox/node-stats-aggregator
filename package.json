@@ -1,0 +1,31 @@
+{
+  "name": "node-stats-aggregator",
+  "version": "0.0.1",
+  "description": "A stats aggregator for NodeJS with a pluggable output system.",
+  "main": "aggregator.js",
+  "dependencies": {
+    "change-case": "^3.0.1",
+    "underscore": "^1.8.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/exposebox/node-stats-aggregator.git"
+  },
+  "keywords": [
+    "nodejs",
+    "mysql",
+    "statsd",
+    "statistics",
+    "aggregator"
+  ],
+  "author": "Orel Weinstock",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/exposebox/node-stats-aggregator/issues"
+  },
+  "homepage": "https://github.com/exposebox/node-stats-aggregator#readme"
+}
