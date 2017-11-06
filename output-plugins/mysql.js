@@ -1,15 +1,21 @@
 'use strict';
-const OutputPlugin = require('output-plugin');
+const _ = require('underscore');
+const changeCase = require('change-case');
+
+const OutputPlugin = require('./output-plugin');
 
 class MysqlOutputPlugin extends OutputPlugin {
     constructor(options) {
         super(options);
         this.updateStr = (valueCount, valueSize) => {
             const valueParamStr = _.times(valueCount, () => '(' + _.times(valueSize, () => '?') + ')');
-            `insert into ${this.tableName} (${this.keyFields.concat(this.valueFields).join(',')}) 
+            let fieldsInSnakeCase = _.map(this.keyFields.concat(this.valueFields), changeCase.snake);
+            return `insert into ${this.tableName} (${fieldsInSnakeCase.join(',')}) 
             values ${valueParamStr} 
             on duplicate key update 
-            ${this.valueFields.map(vf => vf + ' = ' + vf + ' VALUES(' + vf + ')').join(', ')}`
+            ${this.valueFields
+                .map(changeCase.snake)
+                .map(vf => vf + ' = ' + vf + ' VALUES(' + vf + ')').join(', ')}`;
         };
     }
 
@@ -28,3 +34,5 @@ class MysqlOutputPlugin extends OutputPlugin {
         });
     }
 }
+
+module.exports = MysqlOutputPlugin;

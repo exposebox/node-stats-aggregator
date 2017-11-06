@@ -5,7 +5,7 @@ const cronJob = require('cron').CronJob;
 const debug = require('debug')('node-stats-aggregator');
 
 /**
- *
+ * @class
  */
 class StatsAggregator {
     constructor(name, keyFields, valueFields) {
