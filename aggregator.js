@@ -22,7 +22,9 @@ class StatsAggregator {
                 case 'counter':
                 default:
                     stat[vfield] = 0;
-                    this[changeCase.camel('increment ' + vfield)] = () => {
+                    let methodName = changeCase.camel('increment ' + vfield);
+                    debug('generating inc method named:', methodName);
+                    this[methodName] = () => {
                         const stat = this.getOrCreateStat(keyValues);
                         stat[vfield]++;
                     }
@@ -43,6 +45,10 @@ class StatsAggregator {
     }
 
     save() {
+        if (_.isEmpty(this.data)) {
+            return;
+        }
+
         _.each(this.plugins, plugin => plugin.save(this.data));
         this.data = {};
     }
