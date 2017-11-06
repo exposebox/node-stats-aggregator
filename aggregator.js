@@ -2,6 +2,9 @@
 const _ = require('underscore');
 const cronJob = require('cron').CronJob;
 
+const OutputPlugin = require('./output-plugins/output-plugin');
+const MysqlOutputPlugin = require('./output-plugins/mysql');
+const StatsDOutputPlugin = require('./output-plugins/statsd');
 const debug = require('debug')('node-stats-aggregator');
 
 /**
@@ -45,15 +48,19 @@ class StatsAggregator {
     }
 }
 
-module.exports = function createStatsAggregator(name, keyFields, valueFields, options) {
-    var agg = new StatsAggregator(name, keyFields, valueFields);
-    new cronJob({
-        cronTime: options.cronTime || Math.floor(Math.random() * 60) + ' */3 * * * *',
-        onTick: function () {
-            console.log('Running ', name, ' stat Job');
-            agg.save();
-        },
-        start: true
-    });
-    return agg;
+module.exports = {
+    createStatsAggregator: function (name, keyFields, valueFields, options) {
+        var agg = new StatsAggregator(name, keyFields, valueFields);
+        new cronJob({
+            cronTime: options.cronTime || Math.floor(Math.random() * 60) + ' */3 * * * *',
+            onTick: function () {
+                console.log('Running ', name, ' stat Job');
+                agg.save();
+            },
+            start: true
+        });
+        return agg;
+    },
+
+    StatsAggregator, OutputPlugin, MysqlOutputPlugin, StatsDOutputPlugin
 };
