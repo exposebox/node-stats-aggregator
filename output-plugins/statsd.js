@@ -2,9 +2,9 @@
 const _ = require('underscore');
 const StatsdClient = require('statsd-client');
 
-const OutputPlugin = require('../output-plugin');
+const OutputPlugin = require('./output-plugin');
 
-const debug = require('node-stats-generator')('node-stats-aggregator:statsd');
+const debug = require('debug')('node-stats-aggregator:statsd');
 
 class StatsdPlugin extends OutputPlugin {
     constructor(options) {

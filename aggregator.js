@@ -1,6 +1,7 @@
 'use strict';
 const _ = require('underscore');
 const cronJob = require('cron').CronJob;
+const changeCase = require('change-case');
 
 const OutputPlugin = require('./output-plugins/output-plugin');
 const MysqlOutputPlugin = require('./output-plugins/mysql');
@@ -18,9 +19,8 @@ class StatsAggregator {
         this.keyFields = keyFields;
         this.valueFields = valueFields;
         _.each(this.valueFields, vfield => {
-            stat[vfield] = 0;
-            let methodName = changeCase.camel('increment ' + vfield);
-            debug('generating inc method named:', methodName);
+            let methodName = changeCase.camel('add ' + vfield);
+            debug(this.name, ' is generating inc method named:', methodName);
             this[methodName] = (keyValues) => {
                 const stat = this.getOrCreateStat(keyValues);
                 stat[vfield]++;
@@ -29,13 +29,14 @@ class StatsAggregator {
     }
 
     getOrCreateStat(keyValues) {
-        const dataMapKey = keyValues.join('.');
+        const dataMapKey = _.keys(keyValues).join('.');
         const dataForKey = this.data[dataMapKey];
         if (dataForKey)
             return dataForKey;
         else {
             this.data[dataMapKey] = {};
             _.each(this.keyFields, kfield => this.data[dataMapKey][kfield] = keyValues[kfield]);
+            _.each(this.valueFields, vfield => this.data[dataMapKey][vfield] = 0);
             return this.data[dataMapKey];
         }
     }
@@ -54,7 +55,7 @@ module.exports = {
     createStatsAggregator: function (name, keyFields, valueFields, options) {
         var agg = new StatsAggregator(name, keyFields, valueFields);
         new cronJob({
-            cronTime: options.cronTime || Math.floor(Math.random() * 60) + ' */3 * * * *',
+            cronTime: (options && options.cronTime) || Math.floor(Math.random() * 60) + ' */3 * * * *',
             onTick: function () {
                 console.log('Running ', name, ' stat Job');
                 agg.save();
