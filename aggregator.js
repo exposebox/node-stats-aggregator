@@ -12,14 +12,18 @@ const debug = require('debug')('node-stats-aggregator:aggregator');
  * @class
  */
 class StatsAggregator {
-    constructor(name, keyFields, valueFields) {
+    constructor(name, keyFields, valueFields, options) {
         this.name = name;
         this.data = {};
         this.plugins = [];
         this.keyFields = keyFields;
+        debug('keyFields = ', keyFields);
         this.valueFields = valueFields;
+        debug('valueFields = ', valueFields);
+        this.valueFieldsAliases = (options && options.valueFieldsAliases) || {};
+        debug('aliases map:', this.valueFieldsAliases);
         _.each(this.valueFields, vfield => {
-            let methodName = changeCase.camel('add ' + vfield);
+            let methodName = changeCase.camel('add ' + (this.valueFieldsAliases[vfield] || vfield));
             debug(this.name, ' is generating inc method named:', methodName);
             this[methodName] = (keyValues) => {
                 const stat = this.getOrCreateStat(keyValues);
@@ -37,7 +41,9 @@ class StatsAggregator {
             this.data[dataMapKey] = {};
             _.each(this.keyFields, kfield => this.data[dataMapKey][kfield] = keyValues[kfield]);
             _.each(this.valueFields, vfield => this.data[dataMapKey][vfield] = 0);
-            return this.data[dataMapKey];
+            const stat = this.data[dataMapKey];
+            debug('createdStat:', stat);
+            return stat;
         }
     }
 
@@ -53,7 +59,7 @@ class StatsAggregator {
 
 module.exports = {
     createStatsAggregator: function (name, keyFields, valueFields, options) {
-        var agg = new StatsAggregator(name, keyFields, valueFields);
+        var agg = new StatsAggregator(name, keyFields, valueFields, options);
         new cronJob({
             cronTime: (options && options.cronTime) || Math.floor(Math.random() * 60) + ' */3 * * * *',
             onTick: function () {
