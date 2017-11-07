@@ -29,7 +29,7 @@ class StatsAggregator {
     }
 
     getOrCreateStat(keyValues) {
-        const dataMapKey = _.keys(keyValues).join('.');
+        const dataMapKey = _.map(this.keyFields, kf => keyValues[kf]).join('.');
         const dataForKey = this.data[dataMapKey];
         if (dataForKey)
             return dataForKey;
