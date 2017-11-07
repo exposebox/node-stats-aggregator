@@ -22,6 +22,8 @@ class StatsAggregator {
         debug('valueFields = ', valueFields);
         this.valueFieldsAliases = (options && options.valueFieldsAliases) || {};
         debug('aliases map:', this.valueFieldsAliases);
+        this.timeFields = (options && options.timeFields) || {};
+        debug('timeFields:', this.timeFields);
         _.each(this.valueFields, vfield => {
             let methodName = changeCase.camel('add ' + (this.valueFieldsAliases[vfield] || vfield));
             debug(this.name, ' is generating inc method named:', methodName);
@@ -41,6 +43,7 @@ class StatsAggregator {
             this.data[dataMapKey] = {};
             _.each(this.keyFields, kfield => this.data[dataMapKey][kfield] = keyValues[kfield]);
             _.each(this.valueFields, vfield => this.data[dataMapKey][vfield] = 0);
+            _.each(this.timeFields, (timeFunc, tfieldName) => this.data[dataMapKey][tfieldName] = timeFunc());
             const stat = this.data[dataMapKey];
             debug('createdStat:', stat);
             return stat;

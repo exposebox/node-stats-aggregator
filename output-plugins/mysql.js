@@ -9,10 +9,10 @@ const debug = require('debug')('node-stats-aggregator:mysql');
 class MysqlOutputPlugin extends OutputPlugin {
     constructor(options) {
         super(options);
-        this.fields = this.keyFields.concat(this.valueFields);
+        this.fields = this.keyFields.concat(this.valueFields).concat(this.timeFields);
         this.updateStr = (rows) => {
             const valueParamStr = _.map(rows, vector => '(' + vector.join(',') + ')');
-            let fieldsInSnakeCase = _.map(this.keyFields.concat(this.valueFields), changeCase.snake);
+            const fieldsInSnakeCase = _.map(this.fields, changeCase.snake);
             const sql = `insert into ${this.tableName} (${fieldsInSnakeCase.join(',')}) 
             values ${valueParamStr} 
             on duplicate key update 
