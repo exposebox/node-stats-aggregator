@@ -1,6 +1,6 @@
 {
   "name": "node-stats-aggregator",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A stats aggregator for NodeJS with a pluggable output system.",
   "main": "aggregator.js",
   "dependencies": {
