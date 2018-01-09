@@ -1,4 +1,5 @@
 'use strict';
+
 const _ = require('underscore');
 const changeCase = require('change-case');
 
@@ -33,15 +34,20 @@ class MysqlOutputPlugin extends OutputPlugin {
     save(data) {
         const updateData = this.updateData(data);
         const sql = this.updateStr(updateData);
+
         this.client.query(sql, [], err => {
             if (err) {
-                console.log(err);
+                const timeout = 10 * 1000 * Math.random();
+
+                console.warn(`Failed to save stats, retry in ${timeout}ms`);
+
                 setTimeout(() => {
-                    console.log('Trying to save stats again');
                     this.client.query(sql, [], function (err) {
-                        if (err) console.log(err)
+                        if (err) {
+                            console.error(err.stack || err);
+                        }
                     });
-                }, 10 * 1000);
+                }, timeout);
             }
         });
     }
