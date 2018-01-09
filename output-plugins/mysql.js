@@ -25,7 +25,8 @@ class MysqlOutputPlugin extends OutputPlugin {
     }
 
     updateData(data) {
-        const dataToMap = _.values(data);
+        const dataToMap = _.chain(data).pairs().sortBy('0').map('1').value();
+
         return _.map(dataToMap, datum => _.map(this.fields, f => datum[f]));
     }
 
