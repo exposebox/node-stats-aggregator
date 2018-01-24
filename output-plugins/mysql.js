@@ -57,7 +57,7 @@ class MysqlOutputPlugin extends OutputPlugin {
                     if (_.isEmpty(rows))
                         return Promise.resolve();
 
-                    return insertOnDuplicateUpdateIteration(tableName, primaryKeyFieldNames, dataFieldNames, rows);
+                    return insertOnDuplicateUpdateIteration();
                 });
         };
 
@@ -76,7 +76,8 @@ class MysqlOutputPlugin extends OutputPlugin {
                 if (err) {
                     const timeout = 10 * 1000 * Math.random();
 
-                    console.warn(`Failed to save stats, retry in ${timeout}ms`);
+                    console.warn(`Failed to save stats to ${this.tableName}, retry in ${timeout}ms`);
+                    console.warn(err && (err.stack || err));
 
                     setTimeout(() => {
                         this.insertOnDuplicateUpdate(
