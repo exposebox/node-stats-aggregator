@@ -10,6 +10,7 @@ const debug = require('debug')('node-stats-aggregator:mysql');
 class MysqlOutputPlugin extends OutputPlugin {
     constructor(options) {
         super(options);
+        this.batchSize = this.batchSize || 1000;
         this.fields = this.keyFields.concat(this.valueFields).concat(this.timeFields);
     }
 
@@ -28,7 +29,7 @@ class MysqlOutputPlugin extends OutputPlugin {
 
             const allFieldNames = primaryKeyFieldNames.concat(dataFieldNames);
 
-            const currentRowsBatch = rows.splice(0, batchSize);
+            const currentRowsBatch = rows.splice(0, this.batchSize);
 
             const values =
                 currentRowsBatch
