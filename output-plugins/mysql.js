@@ -51,7 +51,7 @@ class MysqlOutputPlugin extends OutputPlugin {
 
             return this.client
                 .queryAsync(sql, valueParameters)
-                .spread(function (result) {
+                .then(function (result) {
                     results.push(result);
 
                     if (_.isEmpty(rows))
