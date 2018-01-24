@@ -23,7 +23,7 @@ class MysqlOutputPlugin extends OutputPlugin {
     insertOnDuplicateUpdate(tableName, primaryKeyFieldNames, dataFieldNames, rows) {
         const results = [];
 
-        function insertOnDuplicateUpdateIteration() {
+        const insertOnDuplicateUpdateIteration = () => {
             if (_.isEmpty(rows))
                 return Promise.resolve();
 
@@ -58,7 +58,7 @@ class MysqlOutputPlugin extends OutputPlugin {
 
                     return insertOnDuplicateUpdateIteration(tableName, primaryKeyFieldNames, dataFieldNames, rows);
                 });
-        }
+        };
 
         return insertOnDuplicateUpdateIteration(tableName, primaryKeyFieldNames, dataFieldNames, rows)
             .then(function () {
