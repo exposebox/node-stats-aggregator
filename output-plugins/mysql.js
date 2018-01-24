@@ -55,7 +55,7 @@ class MysqlOutputPlugin extends OutputPlugin {
                     results.push(result);
 
                     if (_.isEmpty(rows))
-                        return;
+                        return Promise.resolve();
 
                     return insertOnDuplicateUpdateIteration(tableName, primaryKeyFieldNames, dataFieldNames, rows);
                 });
