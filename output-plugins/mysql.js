@@ -27,7 +27,7 @@ class MysqlOutputPlugin extends OutputPlugin {
             if (_.isEmpty(rows))
                 return Promise.resolve();
 
-            const allFieldNames = primaryKeyFieldNames.concat(dataFieldNames);
+            const allFieldNames = primaryKeyFieldNames.concat(dataFieldNames).map(changeCase.snake);
 
             const currentRowsBatch = rows.splice(0, this.batchSize);
 
@@ -40,6 +40,7 @@ class MysqlOutputPlugin extends OutputPlugin {
 
             const updates =
                 dataFieldNames
+                    .map(changeCase.snake)
                     .map(function (dataFieldName) {
                         return dataFieldName + '=VALUES(' + dataFieldName + ')';
                     })
