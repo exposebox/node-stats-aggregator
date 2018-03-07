@@ -10,46 +10,86 @@ const debug = require('debug')('node-stats-aggregator:mysql');
 class MysqlOutputPlugin extends OutputPlugin {
     constructor(options) {
         super(options);
+        this.batchSize = this.batchSize || 1000;
         this.fields = this.keyFields.concat(this.valueFields).concat(this.timeFields);
-        this.updateStr = (rows) => {
-            const valueParamStr = _.map(rows, vector => '(' + vector.join(',') + ')');
-            const fieldsInSnakeCase = _.map(this.fields, changeCase.snake);
-            const sql = `insert into ${this.tableName} (${fieldsInSnakeCase.join(',')}) 
-            values ${valueParamStr} 
-            on duplicate key update 
-            ${this.valueFields
-                .map(changeCase.snake)
-                .map(vf => vf + ' = ' + vf + ' + VALUES(' + vf + ')').join(', ')}`;
-            debug('update sql:', sql);
-            return sql;
-        };
     }
 
-    updateData(data) {
+    dataObjectsToRows(data) {
         const dataToMap = _.chain(data).pairs().sortBy('0').map('1').value();
 
         return _.map(dataToMap, datum => _.map(this.fields, f => datum[f]));
     }
 
+    insertOnDuplicateUpdate(tableName, primaryKeyFieldNames, dataFieldNames, rows) {
+        const results = [];
+
+        const insertOnDuplicateUpdateIteration = () => {
+            if (_.isEmpty(rows))
+                return Promise.resolve();
+
+            const allFieldNames = primaryKeyFieldNames.concat(dataFieldNames).map(changeCase.snake);
+
+            const currentRowsBatch = rows.splice(0, this.batchSize);
+
+            const values =
+                currentRowsBatch
+                    .map(row => `(${_.times(row.length, () => '?').join()})`)
+                    .join();
+
+            const valueParameters = _.flatten(currentRowsBatch);
+
+            const updates =
+                dataFieldNames
+                    .map(changeCase.snake)
+                    .map(function (dataFieldName) {
+                        return dataFieldName + '=VALUES(' + dataFieldName + ')';
+                    })
+                    .join();
+
+            const sql =
+                `INSERT INTO ${tableName} (${allFieldNames.join()}) VALUES ${values} ON DUPLICATE KEY UPDATE ${updates}`;
+
+            return this.client
+                .queryAsync(sql, valueParameters)
+                .then(function (result) {
+                    results.push(result);
+
+                    if (_.isEmpty(rows))
+                        return Promise.resolve();
+
+                    return insertOnDuplicateUpdateIteration();
+                });
+        };
+
+        return insertOnDuplicateUpdateIteration(tableName, primaryKeyFieldNames, dataFieldNames, rows)
+            .then(function () {
+                return results;
+            });
+    }
+
     save(data) {
-        const updateData = this.updateData(data);
-        const sql = this.updateStr(updateData);
+        const updateData = this.dataObjectsToRows(data);
+        debug('saving to stat-agg to mysql');
+        this.insertOnDuplicateUpdate(
+            this.tableName, this.keyFields.concat(this.timeFields), this.valueFields, updateData)
+            .catch(err => {
+                if (err) {
+                    const timeout = 10 * 1000 * Math.random();
 
-        this.client.query(sql, [], err => {
-            if (err) {
-                const timeout = 10 * 1000 * Math.random();
+                    console.warn(`Failed to save stats to ${this.tableName}, retry in ${timeout}ms`);
+                    console.warn(err && (err.stack || err));
 
-                console.warn(`Failed to save stats, retry in ${timeout}ms`);
-
-                setTimeout(() => {
-                    this.client.query(sql, [], function (err) {
-                        if (err) {
-                            console.error(err.stack || err);
-                        }
-                    });
-                }, timeout);
-            }
-        });
+                    setTimeout(() => {
+                        this.insertOnDuplicateUpdate(
+                            this.tableName, this.keyFields.concat(this.timeFields), this.valueFields, updateData)
+                            .catch(function (err) {
+                                if (err) {
+                                    console.error(err.stack || err);
+                                }
+                            });
+                    }, timeout);
+                }
+            });
     }
 }
 
