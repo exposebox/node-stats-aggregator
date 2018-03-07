@@ -66,7 +66,7 @@ module.exports = {
         new cronJob({
             cronTime: (options && options.cronTime) || Math.floor(Math.random() * 60) + ' */3 * * * *',
             onTick: function () {
-                console.log('Running ', name, ' stat Job');
+                debug(`Running ${name} stat Job`);
                 agg.save();
             },
             start: true
