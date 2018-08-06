@@ -1,6 +1,6 @@
 'use strict';
 
-const nsAgg = require('node-stats-aggregator');
+const OutputPlugin = require('./output-plugin');
 
 class HBasePlugin extends nsAgg.OutputPlugin {
     constructor(table,columnFamily, keyFields, valueFields, hbaseClient) {
