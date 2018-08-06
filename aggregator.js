@@ -6,6 +6,7 @@ const changeCase = require('change-case');
 const OutputPlugin = require('./output-plugins/output-plugin');
 const MysqlOutputPlugin = require('./output-plugins/mysql');
 const StatsDOutputPlugin = require('./output-plugins/statsd');
+const HBaseOutputPlugin = require('./output-plugins/hbase-plugin');
 const debug = require('debug')('node-stats-aggregator:aggregator');
 
 /**
@@ -27,9 +28,9 @@ class StatsAggregator {
         _.each(this.valueFields, vfield => {
             let methodName = changeCase.camel('add ' + (this.valueFieldsAliases[vfield] || vfield));
             debug(this.name, ' is generating inc method named:', methodName);
-            this[methodName] = (keyValues) => {
+            this[methodName] = (keyValues,value=1) => {
                 const stat = this.getOrCreateStat(keyValues);
-                stat[vfield]++;
+                stat[vfield]+=value;
             }
         });
     }
@@ -64,7 +65,7 @@ module.exports = {
     createStatsAggregator: function (name, keyFields, valueFields, options) {
         var agg = new StatsAggregator(name, keyFields, valueFields, options);
         new cronJob({
-            cronTime: (options && options.cronTime) || Math.floor(Math.random() * 60) + ' */3 * * * *',
+            cronTime: (options && options.cronTime) || (Math.floor(Math.random() * 60) + ' */3 * * * *'),
             onTick: function () {
                 debug(`Running ${name} stat Job`);
                 agg.save();
@@ -74,5 +75,5 @@ module.exports = {
         return agg;
     },
 
-    StatsAggregator, OutputPlugin, MysqlOutputPlugin, StatsDOutputPlugin
+    StatsAggregator, OutputPlugin, MysqlOutputPlugin, StatsDOutputPlugin , HBaseOutputPlugin
 };
