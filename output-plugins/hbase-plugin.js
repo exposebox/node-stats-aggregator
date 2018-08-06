@@ -2,7 +2,7 @@
 
 const OutputPlugin = require('./output-plugin');
 
-class HBasePlugin extends nsAgg.OutputPlugin {
+class HBasePlugin extends OutputPlugin {
     constructor(table,columnFamily, keyFields, valueFields, hbaseClient) {
         super({table,columnFamily, keyFields, valueFields, hbaseClient});
     }
