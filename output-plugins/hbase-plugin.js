@@ -8,7 +8,7 @@ class HBasePlugin extends OutputPlugin {
     }
 
     createRowKey(key,dataRow){
-        return [key,dataRow].join('.');
+        return `${key}.${dataRow.time}`;
     }
 
     addCellInc(inc,cellKey,cellValue){
